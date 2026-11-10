@@ -755,6 +755,7 @@ I18N.en={
   if(!saved){const n=(navigator.language||'').slice(0,2);if(n==='fr'||n==='pt')saved=n}
   if(saved&&saved!=='en')apply(saved);
 
+  try{const q=new URLSearchParams(location.search);if(q.get('sent')==='1'){if(q.get('lang'))apply(q.get('lang'));const st=document.getElementById('status');st.textContent=t('ct.ok');st.className='status ok';history.replaceState(null,'',location.pathname+'#contact')}}catch(e){}
   /* finder */
   let mode='buy';
   const tabs=[...document.querySelectorAll('.finder [role="tab"]')];
@@ -792,11 +793,10 @@ I18N.en={
     const btn=form.querySelector('button.send');btn.disabled=true;say('ct.sending');
     const kindLabel=(form.querySelector('input[name=kind]:checked')||{}).nextElementSibling;
     const payload={_subject:'MyCityLofts — '+(kindLabel?kindLabel.textContent:'')+' — '+d.name,_template:'table',Projet:kindLabel?kindLabel.textContent:'',Nom:d.name,email:d.email,Telephone:d.phone||'',Ville:d.city||'',Message:d.msg,Langue:lang};
-    fetch('https://formsubmit.co/ajax/'+FORM_ID,{method:'POST',headers:{'Content-Type':'application/json','Accept':'application/json'},body:JSON.stringify(payload)})
-      .then(r=>r.ok?r.json():Promise.reject(r.status))
-      .then(j=>{if(String(j.success)==='false')throw j;form.reset();document.getElementById('k-buy').checked=true;say('ct.ok','ok')})
-      .catch(()=>say('ct.fail','err'))
-      .finally(()=>{btn.disabled=false});
+    const f=document.createElement('form');f.method='POST';f.action='https://formsubmit.co/'+FORM_ID;f.acceptCharset='UTF-8';f.style.display='none';
+    const back=location.origin+location.pathname+'?sent=1&lang='+lang+'#contact';
+    Object.entries(Object.assign({_next:back,_captcha:'false'},payload)).forEach(([k,v])=>{const i=document.createElement('input');i.type='hidden';i.name=k;i.value=v;f.appendChild(i)});
+    document.body.appendChild(f);f.submit();
   });
 })();
 </script>
